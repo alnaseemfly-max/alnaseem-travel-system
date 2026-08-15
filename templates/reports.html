@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% block content %}<h1>التقارير</h1>
+<table><tr><th>الخدمة</th><th>العدد</th><th>الإجمالي</th><th>المدفوع</th><th>المصروف</th><th>الربح</th></tr>
+{% for x in rows %}<tr><td>{{x.service}}</td><td>{{x.count}}</td><td>{{"%.2f"|format(x.total)}}</td><td>{{"%.2f"|format(x.paid)}}</td><td>{{"%.2f"|format(x.expenses)}}</td><td>{{"%.2f"|format(x.profit)}}</td></tr>{% else %}<tr><td colspan="6">لا توجد بيانات</td></tr>{% endfor %}</table>{% endblock %}

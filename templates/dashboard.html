@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block content %}
+<h1>لوحة التحكم</h1>
+<div class="cards">
+<div class="card"><b>{{stats.clients}}</b><span>العملاء</span></div>
+<div class="card"><b>{{stats.transactions}}</b><span>المعاملات</span></div>
+<div class="card"><b>{{stats.pending}}</b><span>قيد الإجراء</span></div>
+<div class="card"><b>{{"%.2f"|format(stats.balance)}}</b><span>المتبقي</span></div>
+</div>
+<div class="actions"><a class="btn" href="/clients/add">+ إضافة عميل</a><a class="btn" href="/transactions/add">+ إضافة معاملة</a></div>
+<h2>آخر المعاملات</h2>
+<table><tr><th>العميل</th><th>الخدمة</th><th>الحالة</th><th>الإجمالي</th><th>المتبقي</th></tr>
+{% for x in recent %}<tr><td>{{x.client_name}}</td><td>{{x.service}}</td><td>{{x.status}}</td><td>{{"%.2f"|format(x.total)}}</td><td>{{"%.2f"|format(x.total-x.paid)}}</td></tr>{% else %}<tr><td colspan="5">لا توجد معاملات بعد</td></tr>{% endfor %}</table>
+{% endblock %}
