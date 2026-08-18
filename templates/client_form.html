@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block content %}<h1>إضافة عميل</h1>
-<form class="form" method="post"><label>الاسم الكامل<input name="name" required></label>
-<label>رقم الجواز<input name="passport"></label><label>رقم الهاتف<input name="phone"></label>
-<label>ملاحظات<textarea name="notes"></textarea></label><button class="btn">حفظ العميل</button></form>{% endblock %}
+{% extends "base.html" %}{% block content %}<h1>{{"تعديل عميل" if client else "إضافة عميل"}}</h1>
+<form class="form" method="post"><label>الاسم الكامل<input name="name" required value="{{client.name if client else ''}}"></label>
+<label>رقم الجواز<input name="passport" value="{{client.passport if client else ''}}"></label><label>رقم الهاتف<input name="phone" value="{{client.phone if client else ''}}"></label>
+<label>ملاحظات<textarea name="notes">{{client.notes if client else ''}}</textarea></label><button class="btn">حفظ</button></form>{% endblock %}

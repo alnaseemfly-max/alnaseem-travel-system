@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block content %}<h1>{{"تعديل حجز باص" if booking else "إضافة حجز باص"}}</h1>
+<form class="form" method="post"><label>العميل<select name="client_id" required><option value="">اختر العميل</option>{% for c in clients %}<option value="{{c.id}}" {% if booking and booking.client_id==c.id %}selected{% endif %}>{{c.name}} — {{c.passport or 'بدون جواز'}}</option>{% endfor %}</select></label>
+<label>شركة النقل<select name="company">{% for c in bus_companies %}<option {% if booking and booking.company==c %}selected{% endif %}>{{c}}</option>{% endfor %}</select></label>
+<label>رقم الحجز<input name="booking_no" value="{{booking.booking_no if booking else ''}}"></label>
+<div class="grid"><label>من<input name="from_city" value="{{booking.from_city if booking else ''}}"></label><label>إلى<input name="to_city" value="{{booking.to_city if booking else ''}}"></label><label>تاريخ السفر<input type="date" name="travel_date" value="{{booking.travel_date if booking else ''}}"></label></div>
+<div class="grid"><label>عدد المقاعد<input type="number" min="1" name="seats" value="{{booking.seats if booking else 1}}"></label><label>الإجمالي<input type="number" step="0.01" name="total" value="{{booking.total if booking else ''}}"></label><label>المدفوع<input type="number" step="0.01" name="paid" value="{{booking.paid if booking else ''}}"></label></div>
+<label>الحالة<select name="status">{% for s in statuses %}<option {% if booking and booking.status==s %}selected{% endif %}>{{s}}</option>{% endfor %}</select></label>
+<label>ملاحظات<textarea name="notes">{{booking.notes if booking else ''}}</textarea></label><button class="btn">حفظ الحجز</button></form>{% endblock %}

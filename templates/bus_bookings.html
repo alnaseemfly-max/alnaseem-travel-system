@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<div class="title-row"><h1>حجوزات الباص</h1><a class="btn" href="/bus-bookings/add">+ حجز باص</a></div>
+<table><tr><th>العميل</th><th>الشركة</th><th>من</th><th>إلى</th><th>التاريخ</th><th>المقاعد</th><th>الحالة</th><th>المتبقي</th><th>إجراء</th></tr>
+{% for b in bookings %}<tr><td>{{b.client_name}}</td><td>{{b.company}}</td><td>{{b.from_city}}</td><td>{{b.to_city}}</td><td>{{b.travel_date}}</td><td>{{b.seats}}</td><td>{{b.status}}</td><td>{{"%.2f"|format(b.total-b.paid)}}</td>
+<td class="actions-cell"><a href="/bus-bookings/{{b.id}}/edit">تعديل</a><form method="post" action="/bus-bookings/{{b.id}}/delete" onsubmit="return confirm('حذف الحجز؟')"><button class="danger">حذف</button></form></td></tr>
+{% else %}<tr><td colspan="9">لا توجد حجوزات</td></tr>{% endfor %}</table>{% endblock %}

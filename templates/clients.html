@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% block content %}
 <div class="title-row"><h1>العملاء</h1><a class="btn" href="/clients/add">+ إضافة عميل</a></div>
 <form class="search"><input name="q" value="{{q}}" placeholder="ابحث بالاسم أو الجواز أو الهاتف"><button>بحث</button></form>
-<table><tr><th>الاسم</th><th>الجواز</th><th>الهاتف</th><th>تاريخ الإضافة</th></tr>
-{% for c in clients %}<tr><td>{{c.name}}</td><td>{{c.passport or '-'}}</td><td>{{c.phone or '-'}}</td><td>{{c.created_at[:10]}}</td></tr>{% else %}<tr><td colspan="4">لا يوجد عملاء</td></tr>{% endfor %}</table>
-{% endblock %}
+<table><tr><th>الاسم</th><th>الجواز</th><th>الهاتف</th><th>تاريخ الإضافة</th><th>إجراء</th></tr>
+{% for c in clients %}<tr><td>{{c.name}}</td><td>{{c.passport or '-'}}</td><td>{{c.phone or '-'}}</td><td>{{c.created_at[:10]}}</td><td class="actions-cell"><a href="/clients/{{c.id}}/edit">تعديل</a><form method="post" action="/clients/{{c.id}}/delete" onsubmit="return confirm('حذف العميل؟')"><button class="danger">حذف</button></form></td></tr>
+{% else %}<tr><td colspan="5">لا يوجد عملاء</td></tr>{% endfor %}</table>{% endblock %}

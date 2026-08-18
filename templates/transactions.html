@@ -1,4 +1,6 @@
 {% extends "base.html" %}{% block content %}
 <div class="title-row"><h1>المعاملات</h1><a class="btn" href="/transactions/add">+ إضافة معاملة</a></div>
-<table><tr><th>العميل</th><th>الخدمة</th><th>الحالة</th><th>رقم الطلب</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr>
-{% for x in transactions %}<tr><td>{{x.client_name}}</td><td>{{x.service}}</td><td>{{x.status}}</td><td>{{x.application_no or '-'}}</td><td>{{"%.2f"|format(x.total)}}</td><td>{{"%.2f"|format(x.paid)}}</td><td>{{"%.2f"|format(x.total-x.paid)}}</td></tr>{% else %}<tr><td colspan="7">لا توجد معاملات</td></tr>{% endfor %}</table>{% endblock %}
+<table><tr><th>العميل</th><th>الخدمة</th><th>الحالة</th><th>رقم الطلب</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>إجراء</th></tr>
+{% for x in transactions %}<tr><td>{{x.client_name}}</td><td>{{x.service}}</td><td>{{x.status}}</td><td>{{x.application_no or '-'}}</td><td>{{"%.2f"|format(x.total)}}</td><td>{{"%.2f"|format(x.paid)}}</td><td>{{"%.2f"|format(x.total-x.paid)}}</td>
+<td class="actions-cell"><a href="/transactions/{{x.id}}/edit">تعديل</a><form method="post" action="/transactions/{{x.id}}/delete" onsubmit="return confirm('حذف المعاملة؟')"><button class="danger">حذف</button></form></td></tr>
+{% else %}<tr><td colspan="8">لا توجد معاملات</td></tr>{% endfor %}</table>{% endblock %}

@@ -1,8 +1,8 @@
-{% extends "base.html" %}{% block content %}<h1>إضافة معاملة</h1>
-<form class="form" method="post"><label>العميل<select name="client_id" required><option value="">اختر العميل</option>{% for c in clients %}<option value="{{c.id}}">{{c.name}} — {{c.passport or 'بدون جواز'}}</option>{% endfor %}</select></label>
-<label>الخدمة<select name="service"><option>تأشيرة عمرة</option><option>تأشيرة زيارة</option><option>تأشيرة عمل</option><option>حجز طيران</option><option>حجز باص</option><option>أخرى</option></select></label>
-<label>الحالة<select name="status"><option>قيد الإجراء</option><option>تمت</option><option>مرفوضة</option><option>ملغاة</option></select></label>
-<label>رقم الطلب/التأشيرة<input name="application_no"></label>
-<div class="grid"><label>تاريخ الإصدار<input type="date" name="issue_date"></label><label>الدخول<input type="date" name="entry_date"></label><label>الخروج<input type="date" name="exit_date"></label></div>
-<div class="grid"><label>الإجمالي<input type="number" step="0.01" name="total"></label><label>المدفوع<input type="number" step="0.01" name="paid"></label><label>المصروف<input type="number" step="0.01" name="expenses"></label></div>
-<label>ملاحظات<textarea name="notes"></textarea></label><button class="btn">حفظ المعاملة</button></form>{% endblock %}
+{% extends "base.html" %}{% block content %}<h1>{{"تعديل معاملة" if transaction else "إضافة معاملة"}}</h1>
+<form class="form" method="post"><label>العميل<select name="client_id" required><option value="">اختر العميل</option>{% for c in clients %}<option value="{{c.id}}" {% if transaction and transaction.client_id==c.id %}selected{% endif %}>{{c.name}} — {{c.passport or 'بدون جواز'}}</option>{% endfor %}</select></label>
+<label>الخدمة<select name="service">{% for s in ['تأشيرة عمرة','تأشيرة زيارة','تأشيرة عمل','حجز طيران','حجز باص','أخرى'] %}<option {% if transaction and transaction.service==s %}selected{% endif %}>{{s}}</option>{% endfor %}</select></label>
+<label>الحالة<select name="status">{% for s in statuses %}<option {% if transaction and transaction.status==s %}selected{% endif %}>{{s}}</option>{% endfor %}</select></label>
+<label>رقم الطلب/التأشيرة<input name="application_no" value="{{transaction.application_no if transaction else ''}}"></label>
+<div class="grid"><label>تاريخ الإصدار<input type="date" name="issue_date" value="{{transaction.issue_date if transaction else ''}}"></label><label>الدخول<input type="date" name="entry_date" value="{{transaction.entry_date if transaction else ''}}"></label><label>الخروج<input type="date" name="exit_date" value="{{transaction.exit_date if transaction else ''}}"></label></div>
+<div class="grid"><label>الإجمالي<input type="number" step="0.01" name="total" value="{{transaction.total if transaction else ''}}"></label><label>المدفوع<input type="number" step="0.01" name="paid" value="{{transaction.paid if transaction else ''}}"></label><label>المصروف<input type="number" step="0.01" name="expenses" value="{{transaction.expenses if transaction else ''}}"></label></div>
+<label>ملاحظات<textarea name="notes">{{transaction.notes if transaction else ''}}</textarea></label><button class="btn">حفظ المعاملة</button></form>{% endblock %}
