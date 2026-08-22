@@ -1,8 +1,17 @@
-<!doctype html><html lang="ar" dir="rtl"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>النسيم للسفريات</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head><body>
-<header><div class="brand">✈️ النسيم للسفريات</div><nav>
-<a href="/">الرئيسية</a><a href="/clients">العملاء</a><a href="/transactions">المعاملات</a><a href="/bus-bookings">حجوزات الباص</a><a href="/reports">التقارير</a>
-</nav></header><main>
-{% with messages=get_flashed_messages() %}{% if messages %}<div class="flash">{{ messages[0] }}</div>{% endif %}{% endwith %}
-{% block content %}{% endblock %}</main><footer>نظام النسيم للسفريات — الإصدار الثاني</footer></body></html>
+<header>
+    <div class="brand">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="النسيم للسفريات">
+        <span>النسيم للسفريات</span>
+    </div>
+
+    <nav>
+        <a href="/">الرئيسية</a>
+        <a href="/clients">العملاء</a>
+        <a href="/transactions">المعاملات</a>
+        <a href="/reports">التقارير</a>
+
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('logout') }}">تسجيل الخروج</a>
+        {% endif %}
+    </nav>
+</header>
