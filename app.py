@@ -40,7 +40,6 @@ def db():
 
 def init_db():
     conn = db()
-    # جدول المستخدمين لتسجيل الدخول
     conn.execute("""CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
@@ -124,7 +123,6 @@ def logout():
     flash("تم تسجيل الخروج بنجاح")
     return redirect(url_for("login"))
 
-# مسار لمرة واحدة لإنشاء حساب المدير الأول
 @app.route("/create-admin-init")
 def create_admin_init():
     conn = db()
@@ -138,6 +136,29 @@ def create_admin_init():
     finally:
         conn.close()
     return msg
+
+# مسار جديد ودقيق لتغيير كلمة المرور متوافق مع SQLite
+@app.route("/change-password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    if request.method == "POST":
+        old_password = request.form.get("old_password", "").strip()
+        new_password = request.form.get("new_password", "").strip()
+
+        if not check_password_hash(current_user.password_hash, old_password):
+            flash("كلمة المرور القديمة غير صحيحة")
+            return redirect(url_for("change_password"))
+
+        new_hashed = generate_password_hash(new_password, method="scrypt")
+        conn = db()
+        conn.execute("UPDATE users SET password_hash=? WHERE id=?", (new_hashed, current_user.id))
+        conn.commit()
+        conn.close()
+
+        flash("تم تغيير كلمة المرور بنجاح!")
+        return redirect(url_for("dashboard"))
+
+    return render_template("change_password.html")
 
 # --- المسارات المحمية (Protected Routes) ---
 
@@ -368,22 +389,6 @@ def reports():
     return render_template("reports.html", rows=rows, bus=bus)
 
 init_db()
-@app.route('/change-password', methods=['GET', 'POST'])
-@login_required
-def change_password():
-    if request.method == 'POST':
-        old_password = request.form.get('old_password')
-        new_password = request.form.get('new_password')
-        
-        if not check_password_hash(current_user.password, old_password):
-            flash('كلمة المرور القديمة غير صحيحة!')
-            return redirect(url_for('change_password'))
-            
-        current_user.password = generate_password_hash(new_password, method='scrypt')
-        db.session.commit()
-        flash('تم تغيير كلمة المرور بنجاح!')
-        return redirect(url_for('dashboard'))
-        
-    return render_template('change_password.html')
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT",5000)))
