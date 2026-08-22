@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3, os
 from datetime import datetime
 
@@ -9,6 +11,28 @@ DB = os.path.join(os.path.dirname(__file__), "alnaseem.db")
 BUS_COMPANIES = ["درة المدينة", "الأفضل", "المتصدر", "النجار"]
 STATUSES = ["قيد الإجراء", "تمت", "مرفوضة", "ملغاة"]
 
+# --- إعداد نظام تسجيل الدخول (Flask-Login) ---
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+login_manager.login_message = "يرجى تسجيل الدخول أولاً للوصول لهذه الصفحة."
+
+class User(UserMixin):
+    def __init__(self, id, username, password_hash):
+        self.id = id
+        self.username = username
+        self.password_hash = password_hash
+
+@login_manager.user_loader
+def load_user(user_id):
+    conn = db()
+    u = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+    conn.close()
+    if u:
+        return User(u["id"], u["username"], u["password_hash"])
+    return None
+
+# --- إعدادات قاعدة البيانات ---
 def db():
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row
@@ -16,6 +40,12 @@ def db():
 
 def init_db():
     conn = db()
+    # جدول المستخدمين لتسجيل الدخول
+    conn.execute("""CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL
+    )""")
     conn.execute("""CREATE TABLE IF NOT EXISTS clients (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -63,7 +93,56 @@ def init_db():
 def globals():
     return {"bus_companies": BUS_COMPANIES, "statuses": STATUSES}
 
+# --- مسارات المصادقة (Auth Routes) ---
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+        
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+        
+        conn = db()
+        user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+        conn.close()
+        
+        if user and check_password_hash(user["password_hash"], password):
+            user_obj = User(user["id"], user["username"], user["password_hash"])
+            login_user(user_obj)
+            return redirect(url_for("dashboard"))
+        else:
+            flash("اسم المستخدم أو كلمة المرور غير صحيحة")
+            
+    return render_template("login.html")
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("تم تسجيل الخروج بنجاح")
+    return redirect(url_for("login"))
+
+# مسار لمرة واحدة لإنشاء حساب المدير الأول
+@app.route("/create-admin-init")
+def create_admin_init():
+    conn = db()
+    hashed_password = generate_password_hash("admin123", method="scrypt")
+    try:
+        conn.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", ("admin", hashed_password))
+        conn.commit()
+        msg = "تم إنشاء الحساب الرئيسي بنجاح! اسم المستخدم: admin | كلمة المرور: admin123"
+    except Exception:
+        msg = "حساب المدير موجود بالفعل."
+    finally:
+        conn.close()
+    return msg
+
+# --- المسارات المحمية (Protected Routes) ---
+
 @app.route("/")
+@login_required
 def dashboard():
     conn = db()
     stats = {
@@ -82,6 +161,7 @@ def dashboard():
     return render_template("dashboard.html", stats=stats, recent=recent)
 
 @app.route("/clients")
+@login_required
 def clients():
     q = request.args.get("q","").strip()
     conn = db()
@@ -95,6 +175,7 @@ def clients():
     return render_template("clients.html", clients=rows, q=q)
 
 @app.route("/clients/add", methods=["GET","POST"])
+@login_required
 def add_client():
     if request.method == "POST":
         name = request.form.get("name","").strip()
@@ -113,6 +194,7 @@ def add_client():
     return render_template("client_form.html", client=None)
 
 @app.route("/clients/<int:client_id>/edit", methods=["GET","POST"])
+@login_required
 def edit_client(client_id):
     conn=db()
     client=conn.execute("SELECT * FROM clients WHERE id=?", (client_id,)).fetchone()
@@ -134,6 +216,7 @@ def edit_client(client_id):
     return render_template("client_form.html", client=client)
 
 @app.post("/clients/<int:client_id>/delete")
+@login_required
 def delete_client(client_id):
     conn=db()
     count=conn.execute("SELECT COUNT(*) c FROM transactions WHERE client_id=?", (client_id,)).fetchone()["c"]
@@ -147,6 +230,7 @@ def delete_client(client_id):
     return redirect(url_for("clients"))
 
 @app.route("/transactions")
+@login_required
 def transactions():
     conn=db()
     rows=conn.execute("""SELECT t.*, c.name client_name FROM transactions t
@@ -155,6 +239,7 @@ def transactions():
     return render_template("transactions.html", transactions=rows)
 
 @app.route("/transactions/add", methods=["GET","POST"])
+@login_required
 def add_transaction():
     conn=db()
     clients=conn.execute("SELECT id,name,passport FROM clients ORDER BY name").fetchall()
@@ -175,6 +260,7 @@ def add_transaction():
     return render_template("transaction_form.html", clients=clients, transaction=None)
 
 @app.route("/transactions/<int:transaction_id>/edit", methods=["GET","POST"])
+@login_required
 def edit_transaction(transaction_id):
     conn=db()
     t=conn.execute("SELECT * FROM transactions WHERE id=?", (transaction_id,)).fetchone()
@@ -198,12 +284,14 @@ def edit_transaction(transaction_id):
     return render_template("transaction_form.html", clients=clients, transaction=t)
 
 @app.post("/transactions/<int:transaction_id>/delete")
+@login_required
 def delete_transaction(transaction_id):
     conn=db(); conn.execute("DELETE FROM transactions WHERE id=?", (transaction_id,))
     conn.commit(); conn.close(); flash("تم حذف المعاملة")
     return redirect(url_for("transactions"))
 
 @app.route("/bus-bookings")
+@login_required
 def bus_bookings():
     conn=db()
     rows=conn.execute("""SELECT b.*, c.name client_name, c.passport
@@ -213,6 +301,7 @@ def bus_bookings():
     return render_template("bus_bookings.html", bookings=rows)
 
 @app.route("/bus-bookings/add", methods=["GET","POST"])
+@login_required
 def add_bus_booking():
     conn=db()
     clients=conn.execute("SELECT id,name,passport FROM clients ORDER BY name").fetchall()
@@ -233,6 +322,7 @@ def add_bus_booking():
     return render_template("bus_booking_form.html", clients=clients, booking=None)
 
 @app.route("/bus-bookings/<int:booking_id>/edit", methods=["GET","POST"])
+@login_required
 def edit_bus_booking(booking_id):
     conn=db()
     b=conn.execute("SELECT * FROM bus_bookings WHERE id=?", (booking_id,)).fetchone()
@@ -254,12 +344,14 @@ def edit_bus_booking(booking_id):
     return render_template("bus_booking_form.html", clients=clients, booking=b)
 
 @app.post("/bus-bookings/<int:booking_id>/delete")
+@login_required
 def delete_bus_booking(booking_id):
     conn=db(); conn.execute("DELETE FROM bus_bookings WHERE id=?", (booking_id,))
     conn.commit(); conn.close(); flash("تم حذف الحجز")
     return redirect(url_for("bus_bookings"))
 
 @app.route("/reports")
+@login_required
 def reports():
     conn=db()
     rows=conn.execute("""SELECT service, COUNT(*) count,
