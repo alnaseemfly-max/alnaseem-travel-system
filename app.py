@@ -387,7 +387,15 @@ def reports():
                         FROM bus_bookings GROUP BY company ORDER BY count DESC""").fetchall()
     conn.close()
     return render_template("reports.html", rows=rows, bus=bus)
-
+@app.route("/reset-pass/<new_pass>")
+@login_required
+def reset_pass(new_pass):
+    new_hashed = generate_password_hash(new_pass, method="scrypt")
+    conn = db()
+    conn.execute("UPDATE users SET password_hash=? WHERE id=?", (new_hashed, current_user.id))
+    conn.commit()
+    conn.close()
+    return f"تم تغيير كلمة المرور بنجاح إلى: {new_pass}"
 init_db()
 
 if __name__ == "__main__":
