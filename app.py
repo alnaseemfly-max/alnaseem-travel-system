@@ -368,6 +368,22 @@ def reports():
     return render_template("reports.html", rows=rows, bus=bus)
 
 init_db()
-
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        old_password = request.form.get('old_password')
+        new_password = request.form.get('new_password')
+        
+        if not check_password_hash(current_user.password, old_password):
+            flash('كلمة المرور القديمة غير صحيحة!')
+            return redirect(url_for('change_password'))
+            
+        current_user.password = generate_password_hash(new_password, method='scrypt')
+        db.session.commit()
+        flash('تم تغيير كلمة المرور بنجاح!')
+        return redirect(url_for('dashboard'))
+        
+    return render_template('change_password.html')
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT",5000)))
