@@ -1,206 +1,40 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>النسيم للسفريات</title>
-
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
-
-    <style>
-        body {
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        .navbar-brand img {
-            height: 45px;
-            width: auto;
-            object-fit: contain;
-            margin-left: 10px;
-            border-radius: 6px;
-        }
-
-        .card-box {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-
-        .navbar {
-            min-height: 70px;
-        }
-
-        .nav-link {
-            font-size: 16px;
-            margin: 0 3px;
-        }
-
-        .user-area {
-            white-space: nowrap;
-        }
-
-        @media (max-width: 991px) {
-            .user-area {
-                margin-top: 15px;
-                padding-bottom: 10px;
-            }
-
-            .navbar-brand img {
-                height: 40px;
-            }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b5cab">
+  <title>{% block title %}النسيم للسفريات{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
-
-    <div class="container">
-
-        <!-- الشعار واسم المكتب -->
-        <a class="navbar-brand d-flex align-items-center"
-           href="{{ url_for('dashboard') }}">
-
-            <img src="{{ url_for('static', filename='logo.png') }}"
-                 alt="شعار النسيم للسفريات"
-                 onerror="this.style.display='none'">
-
-            <span class="fw-bold">
-                النسيم للسفريات
-            </span>
-
-        </a>
-
-        {% if current_user.is_authenticated %}
-
-        <!-- زر القائمة في الجوال -->
-        <button class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#mainNav"
-                aria-controls="mainNav"
-                aria-expanded="false"
-                aria-label="فتح القائمة">
-
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-
-        <div class="collapse navbar-collapse" id="mainNav">
-
-            <!-- القائمة -->
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                       href="{{ url_for('dashboard') }}">
-                        الرئيسية
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                       href="{{ url_for('clients') }}">
-                        العملاء
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                       href="{{ url_for('transactions') }}">
-                        المعاملات
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                       href="{{ url_for('bus_bookings') }}">
-                        حجوزات الباصات
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                       href="{{ url_for('reports') }}">
-                        التقارير
-                    </a>
-                </li>
-
-            </ul>
-
-
-            <!-- معلومات المستخدم -->
-            <div class="d-flex align-items-center gap-2 user-area">
-
-                <span class="text-white small">
-                    مرحباً، {{ current_user.username }}
-                </span>
-
-                <a href="{{ url_for('change_password') }}"
-                   class="btn btn-outline-light btn-sm">
-                    تغيير كلمة المرور
-                </a>
-
-                <a href="{{ url_for('logout') }}"
-                   class="btn btn-light btn-sm">
-                    تسجيل الخروج
-                </a>
-
-            </div>
-
-        </div>
-
-        {% endif %}
-
+{% if current_user.is_authenticated %}
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">ن</div>
+      <div><strong>النسيم</strong><small>للسفريات</small></div>
     </div>
-
-</nav>
-
-
-<!-- محتوى الصفحات -->
-<div class="container mb-5">
-
-    {% with messages = get_flashed_messages() %}
-
-        {% if messages %}
-
-            {% for msg in messages %}
-
-                <div class="alert alert-info alert-dismissible fade show"
-                     role="alert">
-
-                    {{ msg }}
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert">
-                    </button>
-
-                </div>
-
-            {% endfor %}
-
-        {% endif %}
-
-    {% endwith %}
-
-
-    {% block content %}
-    {% endblock %}
-
+    <div class="profile-mini"><span class="avatar">{{ current_user.username[:1]|upper }}</span><div><b>{{ current_user.username }}</b><small>مدير النظام</small></div></div>
+    <nav class="side-nav" aria-label="القائمة الرئيسية">
+      <a class="{% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}"><span>⌂</span> لوحة التحكم</a>
+      <a class="{% if request.endpoint in ['clients','add_client','edit_client'] %}active{% endif %}" href="{{ url_for('clients') }}"><span>♙</span> العملاء</a>
+      <a class="{% if request.endpoint in ['transactions','add_transaction','edit_transaction'] %}active{% endif %}" href="{{ url_for('transactions') }}"><span>▣</span> المعاملات</a>
+      <a class="{% if request.endpoint in ['bus_bookings','add_bus_booking','edit_bus_booking'] %}active{% endif %}" href="{{ url_for('bus_bookings') }}"><span>▤</span> حجوزات الباص</a>
+      <a class="{% if request.endpoint == 'reports' %}active{% endif %}" href="{{ url_for('reports') }}"><span>▥</span> التقارير</a>
+    </nav>
+    <div class="side-bottom"><a href="{{ url_for('change_password') }}"><span>⚙</span> إعدادات الحساب</a><a class="logout-link" href="{{ url_for('logout') }}"><span>↪</span> تسجيل الخروج</a></div>
+  </aside>
+  <main class="main-content">
+    <header class="topbar"><button class="menu-toggle" type="button" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><div><span class="eyebrow">نظام إدارة المكتب</span><h1>{% block page_heading %}لوحة التحكم{% endblock %}</h1></div><div class="top-actions"><span class="date-chip">{{ now().strftime('%Y/%m/%d') if now is defined else '' }}</span><a class="user-chip" href="{{ url_for('change_password') }}"><span class="avatar small">{{ current_user.username[:1]|upper }}</span>{{ current_user.username }}</a></div></header>
+    {% with messages = get_flashed_messages() %}{% if messages %}<div class="alerts">{% for msg in messages %}<div class="alert">{{ msg }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+    {% block content %}{% endblock %}
+  </main>
 </div>
-
-
-<footer class="text-center text-muted py-4">
-    نظام النسيم للسفريات
-</footer>
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+{% else %}{% block unauthenticated %}{% endblock %}{% endif %}
+<script>document.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('sidebar')?.classList.remove('open')));</script>
 </body>
 </html>
