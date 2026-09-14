@@ -6,6 +6,11 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "alnaseem-dev-secret-change-me")
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "0") == "1",
+)
 DB = os.path.join(os.path.dirname(__file__), "alnaseem.db")
 
 BUS_COMPANIES = ["درة المدينة", "الأفضل", "المتصدر", "النجار"]
@@ -90,7 +95,7 @@ def init_db():
 
 @app.context_processor
 def globals():
-    return {"bus_companies": BUS_COMPANIES, "statuses": STATUSES}
+    return {"bus_companies": BUS_COMPANIES, "statuses": STATUSES, "now": datetime.now}
 
 # --- مسارات المصادقة (Auth Routes) ---
 
@@ -123,30 +128,27 @@ def logout():
     flash("تم تسجيل الخروج بنجاح")
     return redirect(url_for("login"))
 
-@app.route("/create-admin-init")
-def create_admin_init():
-    conn = db()
-    hashed_password = generate_password_hash("admin123", method="scrypt")
-    try:
-        conn.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", ("admin", hashed_password))
-        conn.commit()
-        msg = "تم إنشاء الحساب الرئيسي بنجاح! اسم المستخدم: admin | كلمة المرور: admin123"
-    except Exception:
-        msg = "حساب المدير موجود بالفعل."
-    finally:
-        conn.close()
-    return msg
-
-# مسار جديد ودقيق لتغيير كلمة المرور متوافق مع SQLite
+# تغيير كلمة المرور من داخل الحساب فقط
 @app.route("/change-password", methods=["GET", "POST"])
 @login_required
 def change_password():
     if request.method == "POST":
         old_password = request.form.get("old_password", "").strip()
         new_password = request.form.get("new_password", "").strip()
+        confirm_password = request.form.get("confirm_password", "").strip()
 
         if not check_password_hash(current_user.password_hash, old_password):
             flash("كلمة المرور القديمة غير صحيحة")
+            return redirect(url_for("change_password"))
+
+        if len(new_password) < 8:
+            flash("كلمة المرور الجديدة يجب أن تتكون من 8 أحرف أو أرقام على الأقل")
+            return redirect(url_for("change_password"))
+        if new_password != confirm_password:
+            flash("تأكيد كلمة المرور غير مطابق")
+            return redirect(url_for("change_password"))
+        if new_password == old_password:
+            flash("اختر كلمة مرور جديدة مختلفة عن القديمة")
             return redirect(url_for("change_password"))
 
         new_hashed = generate_password_hash(new_password, method="scrypt")
@@ -388,6 +390,9 @@ def reports():
     conn.close()
     return render_template("reports.html", rows=rows, bus=bus)
 
+
+# إنشاء الجداول عند أول تشغيل، مع الإبقاء على قاعدة البيانات الحالية إن وجدت.
+init_db()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT",5000)))
