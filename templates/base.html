@@ -14,34 +14,111 @@
 {% if current_user.is_authenticated %}
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
- <div class="brand">
-  <img
-    src="{{ url_for('static', filename='logo.png') }}"
-    alt="شعار النسيم للسفريات"
-    class="brand-logo"
-  >
-  <div>
-    <strong>النسيم</strong>
-    <small>للسفريات</small>
-  </div>
-</div>   
-    <div class="profile-mini"><span class="avatar">{{ current_user.username[:1]|upper }}</span><div><b>{{ current_user.username }}</b><small>مدير النظام</small></div></div>
+    <div class="brand">
+      <img src="{{ url_for('static', filename='logo.png') }}"
+           alt="شعار النسيم للسفريات"
+           class="brand-logo">
+      <div>
+        <strong>النسيم</strong>
+        <small>للسفريات</small>
+      </div>
+    </div>
+
+    <div class="profile-mini">
+      <span class="avatar">{{ current_user.username[:1]|upper }}</span>
+      <div>
+        <b>{{ current_user.username }}</b>
+        <small>مدير النظام</small>
+      </div>
+    </div>
+
     <nav class="side-nav" aria-label="القائمة الرئيسية">
-      <a class="{% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}"><span>⌂</span> لوحة التحكم</a>
-      <a class="{% if request.endpoint in ['clients','add_client','edit_client'] %}active{% endif %}" href="{{ url_for('clients') }}"><span>♙</span> العملاء</a>
-      <a class="{% if request.endpoint in ['transactions','add_transaction','edit_transaction'] %}active{% endif %}" href="{{ url_for('transactions') }}"><span>▣</span> المعاملات</a>
-      <a class="{% if request.endpoint in ['bus_bookings','add_bus_booking','edit_bus_booking'] %}active{% endif %}" href="{{ url_for('bus_bookings') }}"><span>▤</span> حجوزات الباص</a>
-      <a class="{% if request.endpoint == 'reports' %}active{% endif %}" href="{{ url_for('reports') }}"><span>▥</span> التقارير</a>
+      <a class="{% if request.endpoint == 'dashboard' %}active{% endif %}"
+         href="{{ url_for('dashboard') }}">
+        <span>⌂</span> لوحة التحكم
+      </a>
+
+      <a class="{% if request.endpoint in ['clients','add_client','edit_client'] %}active{% endif %}"
+         href="{{ url_for('clients') }}">
+        <span>♙</span> العملاء
+      </a>
+
+      <a class="{% if request.endpoint in ['transactions','add_transaction','edit_transaction'] %}active{% endif %}"
+         href="{{ url_for('transactions') }}">
+        <span>▣</span> المعاملات
+      </a>
+
+      <a class="{% if request.endpoint in ['bus_bookings','add_bus_booking','edit_bus_booking'] %}active{% endif %}"
+         href="{{ url_for('bus_bookings') }}">
+        <span>▤</span> حجوزات الباص
+      </a>
+
+      <a class="{% if request.endpoint == 'reports' %}active{% endif %}"
+         href="{{ url_for('reports') }}">
+        <span>▥</span> التقارير
+      </a>
     </nav>
-    <div class="side-bottom"><a href="{{ url_for('change_password') }}"><span>⚙</span> إعدادات الحساب</a><a class="logout-link" href="{{ url_for('logout') }}"><span>↪</span> تسجيل الخروج</a></div>
+
+    <div class="side-bottom">
+      <a href="{{ url_for('change_password') }}">
+        <span>⚙</span> إعدادات الحساب
+      </a>
+      <a class="logout-link" href="{{ url_for('logout') }}">
+        <span>↪</span> تسجيل الخروج
+      </a>
+    </div>
   </aside>
+
   <main class="main-content">
-    <header class="topbar"><button class="menu-toggle" type="button" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><div><span class="eyebrow">نظام إدارة المكتب</span><h1>{% block page_heading %}لوحة التحكم{% endblock %}</h1></div><div class="top-actions"><span class="date-chip">{{ now().strftime('%Y/%m/%d') if now is defined else '' }}</span><a class="user-chip" href="{{ url_for('change_password') }}"><span class="avatar small">{{ current_user.username[:1]|upper }}</span>{{ current_user.username }}</a></div></header>
-    {% with messages = get_flashed_messages() %}{% if messages %}<div class="alerts">{% for msg in messages %}<div class="alert">{{ msg }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+    <header class="topbar">
+      <button class="menu-toggle" type="button"
+              aria-label="فتح القائمة"
+              onclick="document.getElementById('sidebar').classList.toggle('open')">
+        ☰
+      </button>
+
+      <div>
+        <span class="eyebrow">نظام إدارة المكتب</span>
+        <h1>{% block page_heading %}لوحة التحكم{% endblock %}</h1>
+      </div>
+
+      <div class="top-actions">
+        <span class="date-chip">
+          {{ now().strftime('%Y/%m/%d') if now is defined else '' }}
+        </span>
+        <a class="user-chip" href="{{ url_for('change_password') }}">
+          <span class="avatar small">{{ current_user.username[:1]|upper }}</span>
+          {{ current_user.username }}
+        </a>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alerts">
+          {% for msg in messages %}
+            <div class="alert">
+              <span>{{ msg }}</span>
+              <button type="button" onclick="this.parentElement.remove()">×</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     {% block content %}{% endblock %}
   </main>
 </div>
-{% else %}{% block unauthenticated %}{% endblock %}{% endif %}
-<script>document.querySelectorAll('.side-nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('sidebar')?.classList.remove('open')));</script>
+{% else %}
+  {% block unauthenticated %}{% endblock %}
+{% endif %}
+
+<script>
+document.querySelectorAll('.side-nav a, .side-bottom a').forEach(function(a){
+  a.addEventListener('click', function(){
+    document.getElementById('sidebar')?.classList.remove('open');
+  });
+});
+</script>
 </body>
 </html>
