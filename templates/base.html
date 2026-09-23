@@ -14,10 +14,17 @@
 {% if current_user.is_authenticated %}
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="brand-mark">ن</div>
-      <div><strong>النسيم</strong><small>للسفريات</small></div>
-    </div>
+ <div class="brand">
+  <img
+    src="{{ url_for('static', filename='logo.png') }}"
+    alt="شعار النسيم للسفريات"
+    class="brand-logo"
+  >
+  <div>
+    <strong>النسيم</strong>
+    <small>للسفريات</small>
+  </div>
+</div>   
     <div class="profile-mini"><span class="avatar">{{ current_user.username[:1]|upper }}</span><div><b>{{ current_user.username }}</b><small>مدير النظام</small></div></div>
     <nav class="side-nav" aria-label="القائمة الرئيسية">
       <a class="{% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}"><span>⌂</span> لوحة التحكم</a>
